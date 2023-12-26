@@ -1,0 +1,136 @@
+#-----------------------team info ---------------------------------------------
+
+#team number --> 47
+#team mebers:
+# 1- Name : Ahmed mohammed abdelaty elshalakany - ID:2021170043
+# 2- Name : Eslam hany abdelsadek               - ID:2021170073
+# 3- Name : khaled mohammed salah ahmed         - ID:20191700227
+# 4- Name : ragy shaker fathy abdulrahman       - ID:20201700248
+# 5- Name : Hussein wael mohammed taha          - ID:2021170170
+
+#----------------------------packages installing and importing------------------
+#install.packages("dplyr")
+#install.packages("readr")
+#install.packages("cluster")
+#install.packages("corrplot")
+#install.packages("factoextra")
+#install.packages("ggplot2")
+#install.packages("dbscan")
+#library(dplyr)
+library(readr)
+library(corrplot)
+library(cluster)
+library(factoextra)
+library(ggplot2)
+library(dbscan)
+
+#----------------------------data reading---------------------------------------
+
+
+file_path <- 'Heartdiseas.txt'
+data <- read.table(file_path, header = TRUE, sep = ",")
+write.csv(data, "DS.csv", row.names = FALSE)
+data <- read_csv("DS.csv")
+data
+
+
+#----------------------------pre processing-------------------------------------
+
+
+data$age[data$age < 0] <- data$age[data$age < 0] * (-1)
+data
+data <- data[!duplicated(data), ]
+summary(data)
+columns_to_check <- c("cp", "trestbps", "chol", "thalach", "oldpeak", "slope")
+
+remove_outliers <- function(data, column) {
+  Q1 <- quantile(data[[column]], 0.25)
+  Q3 <- quantile(data[[column]], 0.75)
+  IQR_col <- Q3 - Q1
+  
+  lower_limit <- Q1 - 1.5 * IQR_col
+  upper_limit <- Q3 + 1.5 * IQR_col
+  
+  outliers <- data[data[[column]] < lower_limit | data[[column]] > upper_limit, ]
+  data <- data[data[[column]] >= lower_limit & data[[column]] <= upper_limit, ]
+  
+  cat("Column:", column, "\n")
+  cat("Lower Limit:", lower_limit, "\n")
+  cat("Upper Limit:", upper_limit, "\n")
+  cat("Outliers:\n")
+  print(outliers)
+  
+  return(data)
+}
+
+for (column in columns_to_check) {
+  data <- remove_outliers(data, column)
+}
+data = data[,-1]
+  
+stats<-summary(data)
+print (stats)
+# ------------------------------data visualization------------------------------
+
+
+corrplot(cor(data) , method = "number",type = "lower")
+boxplot(data$chol , main="chol")
+boxplot(data$trestbps, main="trestbps")
+boxplot(data$thalach, main="thalach")
+boxplot(data$oldpeak, main="oldpeak")
+boxplot(data$age, main="age")
+boxplot(data$cp, main="cp")
+plot(data$chol)
+plot(data$trestbps)
+plot(data$thalach)
+plot(data$oldpeak)
+plot(data$age)
+hist(data$chol, col = "lightblue", xlab = "chol", main = "chol Histogram") 
+hist(data$trestbps, col = "lightblue", xlab = "trestbp", main = "trestbp Histogram")
+hist(data$thalach, col = "lightblue", xlab = "thalach", main = "thalach Histogram")
+hist(data$cp, col = "lightblue", xlab = "cp", main = "cp Histogram") 
+hist(data$sex, col = "lightblue", xlab = "sex", main = "sex Histogram") 
+hist(data$age, col = "lightblue", xlab = "age", main = "age Histogram") 
+hist(data$restecg, col = "lightblue", xlab = "restecg", main = "restecg Histogram") 
+hist(data$exang, col = "lightblue", xlab = "exang", main = "exang Histogram") 
+hist(data$oldpeak, col = "lightblue", xlab = "oldpeak", main = "oldpeak Histogram") 
+hist(data$slope, col = "lightblue", xlab = "slope", main = "slope Histogram") 
+
+
+#--------------------to know the best number of cluster-------------------------
+
+
+wcss <- vector("numeric", length = 10)
+for (i in 1:10) {
+  kmeans_model <- kmeans(data, centers = i, nstart = 10)
+  wcss[i] <-sum( kmeans_model$withinss)
+}
+plot(1:10, wcss, type = "b", xlab = "Number of Clusters", ylab = "WCSS",main = "Elbow-method")
+print(data)
+
+
+#--------------------------clustering with K-means------------------------------
+
+
+#before data normalization
+kmeans (data, centers = 2 , iter.max = 10, nstart = 10, algorithm = c("Hartigan-Wong", "Lloyd", "Forgy", "MacQueen"))
+before_scaling_clusters<-kmeans (data, centers = k , iter.max = 10, nstart = 1, algorithm = c("Hartigan-Wong", "Lloyd", "Forgy", "MacQueen"))
+clusplot(data, before_scaling_clusters$cluste,main ="before scaling (normalization) " )
+#after data normalization
+scaled_data <- scale(data)
+km_result<-kmeans (scaled_data, centers = 2 , iter.max = 10, nstart = 10, algorithm = c("Hartigan-Wong", "Lloyd", "Forgy", "MacQueen"))
+clusplot(scaled_data, km_result$cluste,main = "after scaling (normalization) ")
+
+#--------------------------clustering with hierarchical-------------------------
+
+hierarchical_clusters <- hclust(dist(scaled_data),"complete")
+cut_tree_clusters <- cutree(hierarchical_clusters, k = 2)
+clusplot(scaled_data, cut_tree_clusters, main = "Hierarchical Clustering")
+plot(cut_tree_clusters)
+
+#--------------------------clustering with dbscan-------------------------------
+
+dbscan_clusters <- dbscan(scaled_data, eps = 0.5, minPts = 3)
+clusplot(scaled_data, dbscan_clusters$cluster, main = "DBSCAN Clustering")
+
+#------------------------------------End----------------------------------------

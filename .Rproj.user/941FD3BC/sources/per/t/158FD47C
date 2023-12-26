@@ -1,0 +1,28 @@
+{
+    "id": "158FD47C",
+    "path": null,
+    "project_path": null,
+    "type": "object_explorer",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1703511616504.0,
+    "source_on_save": false,
+    "relative_order": 6,
+    "properties": {
+        "id": "ae54b9c1c10b45efac82427143f5e0df",
+        "name": "before_scaling_clusters",
+        "title": "before_scaling_clusters",
+        "language": "R",
+        "source_window_id": "",
+        "Source": "Source"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1713184874296,
+    "encoding": "",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1703511616504,
+    "read_only": false,
+    "read_only_alternatives": []
+}
